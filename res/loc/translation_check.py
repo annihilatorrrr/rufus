@@ -82,59 +82,69 @@ def load_languages():
                 elif line[0] == "b":
                     languages[i].base = shlex.split(line)[1]
                     if line != "b \"en-US\"":
-                        print(languages[i].name + " is based on another translation: " + languages[i].base)
+                        print(
+                            f"{languages[i].name} is based on another translation: {languages[i].base}"
+                        )
+
                 elif line[0] == "g":
                     languages[i].groups[shlex.split(line)[1]] = {}
                     # print("current group: "+languages[i].get_current_group())
                 elif line[0] == "t":
-                    pass
                     try:
                         temp_translation = shlex.split(line) #errors
                     except ValueError as err:
-                        exceptions.append(str(err)+" in line "+ str(index+1)+": "+line)
+                        exceptions.append(f"{str(err)} in line {str(index + 1)}: {line}")
                     languages[i].groups[languages[i].get_current_group()][temp_translation[1]] = temp_translation[2]
-                    #print("cur transl: "+languages[i].get_current_message())
+                                    #print("cur transl: "+languages[i].get_current_message())
                 elif line[0] == "\"":
                     pass
-                elif line[0] == "a":
-                    pass #only RTL indication as for now
-                else:
-                    raise Exception("unknown line "+str(index+1)+ ": "+line)
+                elif line[0] != "a":
+                    raise Exception(f"unknown line {str(index + 1)}: {line}")
         except Exception as error:
-            exceptions.append("Error: "+ repr(error))
+            exceptions.append(f"Error: {repr(error)}")
 
 
-    if len(exceptions) > 0:
+    if exceptions:
         print("[WARNING]")
         print("\n".join(exceptions))
     else:
         print("[OK]")
     print()
-    print ("Found " + str(len(languages)) + " languages")
+    print(f"Found {len(languages)} languages")
     version = languages[0].version
-    print("Assuming " + version + " is the latest version. Only languages with this version will be checked...")
+    print(
+        f"Assuming {version} is the latest version. Only languages with this version will be checked..."
+    )
+
     #comment if you want to check every single language, not only newest versions
     languages[:] = [language for language in languages if language.version==version]
-    print (str(len(languages)) + " languages in " + languages[0].version + " version:")
+    print(f"{len(languages)} languages in {languages[0].version} version:")
     print ("\n".join(language.name for language in languages))
     print()
 
 def check_unavailable():
     print_no_new("Checking for possible missing messages...\t")
     sys.stdout.flush()
-    #for groups in english
-        #every lang
-            #does group exist
-            #for strings in groups
-                #does it exist
     for group in languages[0].groups:
         for language in languages[1::]:
             if group not in language.groups:
-                unavailable.append("Language " + language.name + " is missing group '" + group + "'")
+                unavailable.append(
+                    f"Language {language.name}"
+                    + " is missing group '"
+                    + group
+                    + "'"
+                )
+
             else:
                 for string in languages[0].groups[group]:
                     if string not in language.groups[group] and string not in ignored_messages:
-                        unavailable.append("Language " + language.name + " is missing message '" + string + "'")
+                        unavailable.append(
+                            f"Language {language.name}"
+                            + " is missing message '"
+                            + string
+                            + "'"
+                        )
+
     # print output
     if len(unavailable) > 0:
         print("[WARNING]")
@@ -147,18 +157,26 @@ def check_unavailable():
 def check_untranslated():
     print_no_new("Checking for possible untranslated messages...\t")
     sys.stdout.flush()
-    #evyerything but english
-        #for group
-            #for string
-                #transl==english?
     for language in languages[1::]:
         for group in language.groups:
             for string in language.groups[group]:
                 try:
                     if language.groups[group][string] == languages[0].groups[group][string] and string not in ignored_messages:
-                        untranslated.append("Language " + language.name + ": message '" + string + "' has the same translation as English")
+                        untranslated.append(
+                            f"Language {language.name}"
+                            + ": message '"
+                            + string
+                            + "' has the same translation as English"
+                        )
+
                 except KeyError as error:
-                    untranslated.append("Language " + language.name + ": message '" + string + "' doesn't exist in English")
+                    untranslated.append(
+                        f"Language {language.name}"
+                        + ": message '"
+                        + string
+                        + "' doesn't exist in English"
+                    )
+
     # print output
     if len(untranslated) > 0:
         print("[WARNING]")
